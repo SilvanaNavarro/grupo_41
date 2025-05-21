@@ -1,3 +1,2 @@
 streamlit_app*.py
-*.ipynb
 .env

@@ -95,7 +95,7 @@ with c1_f1:
         
         # Mostramos el gráfico
         st.pyplot(fig)
-        st.write("*El gráfico muestra la evolución de las ventas a lo largo del tiempo, permitiendo identificar volumen de ventas.*")
+        st.write("El gráfico muestra la evolución de las ventas a lo largo del tiempo, permitiendo identificar volumen de ventas.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
@@ -123,7 +123,7 @@ with c2_f1:
             
             # Mostramos el gráfico en Streamlit
             st.pyplot(fig)
-            st.write("*El gráfico muestra la evolución de las ventas diferenciadas por producto a lo largo del tiempo, permitiendo identificar tipo de productos según su volumen de ventas.*")
+            st.write("El gráfico muestra la evolución de las ventas diferenciadas por producto a lo largo del tiempo, permitiendo identificar tipo de productos según su volumen de ventas.")
         else:
             st.info("Selecciona al menos una línea de productos")
     else:
@@ -164,7 +164,7 @@ with c1_f2:
 
         # 4. Mostrar en Streamlit
         st.pyplot(fig)
-        st.write("*Muestra la distribución de las calificaciones de los clientes en el período seleccionado, mostrando su promedio diario por género.*")
+        st.write("Muestra la distribución de las calificaciones de los clientes en el período seleccionado, mostrando su promedio diario por género.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
@@ -197,7 +197,7 @@ with c2_f2:
         
         # Mostrar gráfico
         st.pyplot(fig)
-        st.write("*Visualiza la distribución de las calificaciones de los clientes en el período seleccionado, monstrando la media del total de calificaciones.*")
+        st.write("Visualiza la distribución de las calificaciones de los clientes en el período seleccionado, monstrando la media del total de calificaciones.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 #Gráfico de gasto por tipo de clientes
@@ -228,7 +228,7 @@ with c1_f3:
         
         # Mostramos el gráfico en Streamlit
         st.pyplot(fig)
-        st.write("*El gráfico muestra la distribución de las ventas diferenciadas por tipo de cliente a lo largo del tiempo.*")
+        st.write("El gráfico muestra la distribución de las ventas diferenciadas por tipo de cliente a lo largo del tiempo.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 with c2_f3:
@@ -252,7 +252,7 @@ with c2_f3:
         
         # Mostramos el gráfico
         st.pyplot(fig)
-        st.write("*El gráfico muestra el porcentaje del total de ventas por tipo de cliente.*")
+        st.write("El gráfico muestra el porcentaje del total de ventas por tipo de cliente.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
@@ -291,11 +291,42 @@ if len(date_range)==2:
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
 
+# Gráfico de Métodos de Pago Preferidos
+st.subheader("Métodos de Pago Preferidos")
+if len(date_range) == 2:
+    df_payment = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])]
+    df_payment_counts = df_payment['Payment'].value_counts().reset_index()
+    df_payment_counts.columns = ['Payment', 'Count']
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.barplot(data=df_payment_counts, x='Payment', y='Count', palette='viridis', ax=ax)
+    
+    ax.set_title('Frecuencia de Métodos de Pago')
+    ax.set_xlabel('Método de Pago')
+    ax.set_ylabel('Frecuencia')
+    ax.grid(True, alpha=0.3)
+    st.pyplot(fig)
+    st.write("Este gráfico muestra la frecuencia de los métodos de pago utilizados por los clientes en el período seleccionado.")
+else:
+    st.info("Selecciona inicio y fin de periodo a observar ")
 
+# Gráfico de Análisis de Correlación Numérica
+st.subheader("Análisis de Correlación Numérica")
+if len(date_range) == 2:
+    df_corr = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])]
+    correlation_matrix = df_corr[['Unit price', 'Quantity', 'Tax 5%', 'Total', 'cogs', 'gross income', 'Rating']].corr()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm', ax=ax, square=True, cbar_kws={"shrink": .8})
+    
+    ax.set_title('Matriz de Correlación')
+    plt.xticks(rotation=45)
+    
+    st.pyplot(fig)
+    st.write("La matriz de correlación muestra las relaciones lineales entre las variables numéricas seleccionadas.")
+else:
+    st.info("Selecciona inicio y fin de periodo a observar ")
 
 
 
 # Pie de página 
 st.markdown("---")
 st.caption("Dashboard Tendencia de Ventas | Datos: data.csv")
-
