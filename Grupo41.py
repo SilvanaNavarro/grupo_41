@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from datetime import datetime, timedelta
+import plotly.express as px
 
 ruta = 'src/data.csv'#Setear ruta a csv
 
@@ -63,18 +64,11 @@ st.subheader("Total de ventas en el tiempo")
 # Creamos una fila con dos gráficos: PIB y Variables Porcentuales
 c1_f1, c2_f1 = st.columns(2)
 
-# Diccionario para traducir nombres de variables
-# nombres = {
-#     'gdp': 'PIB', 
-#     'unemp': 'Desempleo', 
-#     'inflation': 'Inflación'
-# }
-
 with c1_f1:
     if len(date_range)==2:
         df_products = df_products[(df_products['Date'].dt.date >= date_range[0]) & (df_products['Date'].dt.date <= date_range[1])]
         df_ventas = df_products[['Date','Total']]
-        st.write("### Evolución del total de ventas")
+        st.write("### Análisis 1: Evolución del total de ventas")
         fig, ax = plt.subplots(figsize=(6, 3))
         
         # Graficamos el PIB agrupado por año
@@ -101,7 +95,7 @@ with c1_f1:
 
 with c2_f1:
     if len(date_range)==2:
-        st.write("### Detalle de ventas por linea de productos en el tiempo")
+        st.write("### Análisis 2: Detalle de ventas por linea de productos en el tiempo")
         if linea_productos:
             # Creamos un gráfico de área para mostrar la evolución temporal
             fig, ax = plt.subplots(figsize=(6, 3))
@@ -132,7 +126,7 @@ with c2_f1:
 # Data para análisis de clasificación de clientes
 df_clasificacion = df[['Date','Customer type','Gender','Rating','Product line']].groupby(['Date','Customer type','Gender','Product line']).mean().reset_index()
 
-st.subheader("Distribución de la Calificación de Clientes")
+st.subheader("Análisis 3: Distribución de la Calificación de Clientes")
 c1_f2, c2_f2 = st.columns(2)
 
 # 1. Procesar los datos
@@ -168,7 +162,7 @@ with c1_f2:
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
-# Histograma de Inflación
+# Histograma de calificaciones
 with c2_f2:
     if len(date_range)==2:
         st.write("### Distribución de las calificaciones")
@@ -200,7 +194,9 @@ with c2_f2:
         st.write("Visualiza la distribución de las calificaciones de los clientes en el período seleccionado, monstrando la media del total de calificaciones.")
     else:
         st.info("Selecciona inicio y fin de periodo a observar ")
+
 #Gráfico de gasto por tipo de clientes
+st.subheader("Análisis 4: Análisis de ventas por tipo de Clientes")
 c1_f3, c2_f3 = st.columns([7,3])
 
 with c1_f3:
@@ -257,22 +253,22 @@ with c2_f3:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
 #Gráfico 4 fila 
-st.subheader("Relación entre costo de bienes vendidos y el ingreso bruto")
+st.subheader("Análisis 5: Relación entre costo de bienes vendidos y el Ganancia bruta")
 
 if len(date_range)==2:
     df_incomes = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])].groupby('Date')[['cogs','gross income']].sum().reset_index()
-    df_incomes = df_incomes.rename(columns={'cogs':'Costo','gross income':'Ingreso bruto'})
+    df_incomes = df_incomes.rename(columns={'cogs':'Costo','gross income':'Ganancia bruta'})
 
     df_melted = df_incomes.melt(
         id_vars='Date', 
-        value_vars=['Costo', 'Ingreso bruto'],
+        value_vars=['Costo', 'Ganancia bruta'],
         var_name='Metric', 
         value_name='Monto'
     )
 
     # Crear gráfico
     plt.figure(figsize=(12, 6))
-    sns.barplot(
+    ax = sns.barplot(  # Asignamos a 'ax' para poder modificar después
         data=df_melted,
         x='Date',
         y='Monto',
@@ -280,22 +276,38 @@ if len(date_range)==2:
         palette=["#032C69", '#7FBFFF']
     )
 
-    plt.title('Relación entre el costo de bienes vendidos y el ingreso bruto')
-    plt.xlabel('Fecha')
-    plt.ylabel('Monto')
+    # Añadir valores sobre las barras
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            fmt='%.1f',  # Formato con 1 decimal
+            padding=3,   # Espacio entre barra y texto
+            fontsize=9,
+            fontweight='bold',
+            color='black'  # Color del texto
+        )
+
+    # Personalización del gráfico
+    plt.title('Relación entre el Costo de bienes vendidos y la Ganancia bruta', pad=15)
+    plt.xlabel('Fecha', labelpad=10)
+    plt.ylabel('Monto', labelpad=10)
     plt.xticks(rotation=45)
-    # ax.set_xticks(ax.get_xticks()[::2])  # Mostrar cada segunda etiqueta
-    # ax.set_xticklabels(ax.get_xticklabels()[::2])  # Aplicar a los labels
-    plt.legend(title='Métrica')
-
-    # Ajustar límites del eje Y si los números no se ven
-    y_max = df_melted['Monto'].max()
-    ax.set_ylim(0, y_max * 1.15)  # Dejar 15% de espacio extra arriba
     
-
+    # Ajustar límites del eje Y para mejor visualización
+    y_max = df_melted['Monto'].max()
+    ax.set_ylim(0, y_max * 1.20)  # 20% más de espacio arriba
+    
+    # Mostrar cada segunda etiqueta si hay muchas fechas
+    if len(df_incomes) > 10:
+        ax.set_xticks(ax.get_xticks()[::2])
+        ax.set_xticklabels(ax.get_xticklabels()[::2])
+    
+    plt.legend(title='Métrica', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()  # Ajuste automático del layout
 
     # Mostrar en Streamlit
     st.pyplot(plt.gcf())
+    st.write("El gráfico muestra el contraste entre el costo de los productos versus la ganancia que se obtiene de ellos antes de descuentos.")
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
 
@@ -303,7 +315,7 @@ else:
 
 
 # Gráfico de Métodos de Pago Preferidos
-st.subheader("Métodos de Pago Preferidos")
+st.subheader("Análisis 6: Métodos de Pago Preferidos")
 if len(date_range) == 2:
     df_payment = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])]
     df_payment_counts = df_payment['Payment'].value_counts().reset_index()
@@ -315,13 +327,25 @@ if len(date_range) == 2:
     ax.set_xlabel('Método de Pago')
     ax.set_ylabel('Frecuencia')
     ax.grid(True, alpha=0.3)
+
+    # Añadir valores sobre las barras
+    for container in ax.containers:
+        ax.bar_label(
+            container,
+            fmt='%.0f',  # Formato con 1 decimal
+            padding=3,   # Espacio entre barra y texto
+            fontsize=9,
+            fontweight='bold',
+            color='black'  # Color del texto
+        )
+
     st.pyplot(fig)
     st.write("Este gráfico muestra la frecuencia de los métodos de pago utilizados por los clientes en el período seleccionado.")
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
 
 # Gráfico de Análisis de Correlación Numérica
-st.subheader("Análisis de Correlación Numérica")
+st.subheader("Análisis 7: Análisis de Correlación Numérica")
 if len(date_range) == 2:
     df_corr = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])]
     correlation_matrix = df_corr[['Unit price', 'Quantity', 'Tax 5%', 'Total', 'cogs', 'gross income', 'Rating']].corr()
@@ -336,6 +360,50 @@ if len(date_range) == 2:
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
 
+#Grafico 8 
+st.subheader("Análisis 8: Análisis de ventas por sucursal y tipo de producto ")
+df_grouped = df[['gross income', 'Product line', 'Branch']].groupby(['Product line', 'Branch']).sum().reset_index()
+
+# Widgets para personalizar el gráfico
+st.sidebar.header('Personalización',
+                  help="Selecciona los componentes para visualizar las ventas por línea de producto y branch en el análisis 8")
+
+color_options = df_grouped.columns.tolist()
+default_color_index = color_options.index('Product line') if 'Product line' in color_options else 0
+color_col = st.sidebar.selectbox('Variable para colorear burbujas', 
+                               color_options, 
+                               index=default_color_index)
+hover_cols = st.sidebar.multiselect('Datos a mostrar al pasar el mouse', 
+                                   df_grouped.columns, 
+                                   default=df_grouped.columns.tolist())
+
+# Crear el gráfico de burbujas
+fig = px.scatter(
+    df_grouped,
+    x= 'gross income',  
+    y= 'Branch',  
+    size='gross income',
+    color=color_col,
+    hover_name='Product line', 
+    hover_data=hover_cols,
+    size_max=60,
+    title='Relación entre Branch y Product line por Línea de Producto'
+)
+
+# Personalizar diseño
+fig.update_layout(
+    xaxis_title='Gross income',
+    yaxis_title='Branch',
+    hovermode='closest'
+)
+
+# Mostrar el gráfico en Streamlit
+st.plotly_chart(fig, use_container_width=True)
+
+# Mostrar los datos usados
+if st.checkbox('Mostrar datos subyacentes'):
+    st.dataframe(df_grouped)
+st.write("El gráfico muestra el impacto del producto en las ganancias brutas por Branch.")
 
 
 # Pie de página 
