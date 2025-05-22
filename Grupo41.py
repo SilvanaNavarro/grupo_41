@@ -299,7 +299,7 @@ if len(date_range)==2:
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
 
-
+#Insertar gráficos acá
 
 
 # Gráfico de Métodos de Pago Preferidos
