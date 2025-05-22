@@ -257,6 +257,8 @@ with c2_f3:
         st.info("Selecciona inicio y fin de periodo a observar ")
 
 #Gráfico 4 fila 
+st.subheader("Relación entre costo de bienes vendidos y el ingreso bruto")
+
 if len(date_range)==2:
     df_incomes = df[(df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])].groupby('Date')[['cogs','gross income']].sum().reset_index()
     df_incomes = df_incomes.rename(columns={'cogs':'Costo','gross income':'Ingreso bruto'})
@@ -282,14 +284,23 @@ if len(date_range)==2:
     plt.xlabel('Fecha')
     plt.ylabel('Monto')
     plt.xticks(rotation=45)
-    ax.set_xticks(ax.get_xticks()[::2])  # Mostrar cada segunda etiqueta
-    ax.set_xticklabels(ax.get_xticklabels()[::2])  # Aplicar a los labels
+    # ax.set_xticks(ax.get_xticks()[::2])  # Mostrar cada segunda etiqueta
+    # ax.set_xticklabels(ax.get_xticklabels()[::2])  # Aplicar a los labels
     plt.legend(title='Métrica')
+
+    # Ajustar límites del eje Y si los números no se ven
+    y_max = df_melted['Monto'].max()
+    ax.set_ylim(0, y_max * 1.15)  # Dejar 15% de espacio extra arriba
+    
+
 
     # Mostrar en Streamlit
     st.pyplot(plt.gcf())
 else:
     st.info("Selecciona inicio y fin de periodo a observar ")
+
+
+
 
 # Gráfico de Métodos de Pago Preferidos
 st.subheader("Métodos de Pago Preferidos")
